@@ -96,19 +96,8 @@ class Firm < ActiveRecord::Base
     address_line_one_changed? || address_line_two_changed? || address_postcode_changed?
   end
 
-  def latitude=(value)
-    value = value.to_f.round(6) unless value.nil?
-    write_attribute(:latitude, value)
-  end
-
-  def longitude=(value)
-    value = value.to_f.round(6) unless value.nil?
-    write_attribute(:longitude, value)
-  end
-
-  def geocode!(latitude = nil, longitude = nil)
-    self.latitude = latitude
-    self.longitude = longitude
+  def geocode!(coordinates)
+    self.latitude, self.longitude = *standardise_coordinates(coordinates)
     save!(callbacks: false)
   end
 
@@ -143,6 +132,20 @@ class Firm < ActiveRecord::Base
   end
 
   private
+
+  def stat(key)
+    Stats.increment("radsignup.geocode_firm.#{key}")
+  end
+
+  def standardise_coordinates(coordinates)
+    if coordinates
+      stat :success
+      coordinates.map { |v| v.to_f.round(6) }
+    else
+      stat :failed
+      [nil, nil]
+    end
+  end
 
   def geocode_if_needed
     if valid? && full_street_address_changed?
