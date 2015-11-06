@@ -1,4 +1,14 @@
 class Office < ActiveRecord::Base
+  include Geocodable
+
+  ADDRESS_FIELDS = [
+    :address_line_one,
+    :address_line_two,
+    :address_town,
+    :address_county,
+    :address_postcode
+  ].freeze
+
   belongs_to :firm
 
   before_validation :upcase_postcode
@@ -34,8 +44,6 @@ class Office < ActiveRecord::Base
 
   validates :disabled_access, inclusion: { in: [true, false] }
 
-  after_commit :geocode_and_reindex_firm
-
   def field_order
     [
       :address_line_one,
@@ -57,21 +65,41 @@ class Office < ActiveRecord::Base
     [address_line_one, address_line_two, address_postcode, 'United Kingdom'].reject(&:blank?).join(', ')
   end
 
+  def geocode
+    return false unless valid?
+    return true unless needs_to_be_geocoded?
+
+    self.coordinates = ModelGeocoder.geocode(self)
+    add_geocoding_failed_error unless geocoded?
+
+    geocoded?
+  end
+
+  def needs_to_be_geocoded?
+    !geocoded? || has_address_changes?
+  end
+
+  def has_address_changes?
+    ADDRESS_FIELDS.any? { |field| changed_attributes.include? field }
+  end
+
+  def save_with_geocoding
+    geocode && save
+  end
+
+  def update_with_geocoding(office_params)
+    self.attributes = office_params
+    save_with_geocoding
+  end
+
   private
+
+  def add_geocoding_failed_error
+    errors.add(:address, I18n.t("#{model_name.i18n_key}.geocoding.failure_message"))
+  end
 
   def upcase_postcode
     address_postcode.upcase! if address_postcode.present?
-  end
-
-  def geocode_and_reindex_firm
-    return if destroyed?
-    if valid? and main_office?
-      firm.geocode_and_reindex # until we move the geocoding to offices, geocode the firm if this is the main office
-    end
-  end
-
-  def main_office?
-    firm.try(:main_office) == self
   end
 end
 
