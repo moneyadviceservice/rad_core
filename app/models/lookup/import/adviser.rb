@@ -15,6 +15,12 @@ module Lookup
       def self.truncate_sql
         "TRUNCATE #{table_name};"
       end
+
+      def self.import_uploaded_fca_data
+        lookup_class = Lookup::Adviser
+        lookup_class.delete_all
+        ActiveRecord::Base.connection.execute("INSERT INTO #{lookup_class.table_name} (SELECT * FROM #{table_name});")
+      end
     end
   end
 end
