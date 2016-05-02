@@ -11,6 +11,10 @@ module Lookup
       def self.fca_import_copy_statement
         "COPY #{table_name} (reference_number, name, created_at, updated_at) FROM stdin;"
       end
+
+      def self.truncate_sql
+        "TRUNCATE #{table_name};"
+      end
     end
   end
 end
