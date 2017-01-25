@@ -47,7 +47,7 @@ class FirmResult
 
   def initialize(data)
     source = data['_source']
-    @id    = source['_id']
+    @id    = data['_id'].to_i
     @name  = source['registered_name']
     @advisers         = source['advisers']
     @total_advisers   = source['advisers'].count

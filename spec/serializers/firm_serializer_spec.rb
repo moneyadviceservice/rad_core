@@ -6,10 +6,6 @@ RSpec.describe FirmSerializer do
   describe 'the serialized json' do
     subject { described_class.new(firm).as_json }
 
-    it 'exposes `_id`' do
-      expect(subject[:_id]).to eql(firm.id)
-    end
-
     it 'exposes `registered_name`' do
       expect(subject[:registered_name]).to eql(firm.registered_name)
     end

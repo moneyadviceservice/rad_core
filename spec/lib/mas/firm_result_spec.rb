@@ -6,7 +6,6 @@ RSpec.describe FirmResult do
       '_id'     => '1',
       '_score'  => nil,
       '_source' => {
-        '_id' => 1,
         'registered_name' => 'Financial Advice 1 Ltd.',
         'postcode_searchable' => true,
         'address_line_one' => '64 Somewhere',
@@ -78,7 +77,7 @@ RSpec.describe FirmResult do
 
   describe 'the deserialized result' do
     it 'maps the `id`' do
-      expect(subject.id).to eq(1)
+      expect(subject.id).to be(1)
     end
 
     it 'maps the `name`' do

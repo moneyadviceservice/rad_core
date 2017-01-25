@@ -31,7 +31,8 @@ RSpec.describe FirmRepository do
       let(:firm) { create(:firm) }
 
       it 'delegates to the configured client' do
-        expect(client).to receive(:store).with(/firms\/\d+/, hash_including(:_id))
+        expect(client).to receive(:store)
+          .with(/firms\/#{firm.id}/, FirmSerializer.new(firm).as_json)
 
         described_class.new(client_class).store(firm)
       end
