@@ -1,3 +1,5 @@
+require 'csv'
+
 class Adviser < ActiveRecord::Base
   include Geocodable
 
@@ -72,6 +74,16 @@ class Adviser < ActiveRecord::Base
       :postcode,
       :travel_distance
     ]
+  end
+
+  def self.to_csv(_ = {})
+    CSV.generate do |csv|
+      csv << ['Ref. Number', 'Name', 'Firm']
+
+      find_each do |adviser|
+        csv << [adviser.reference_number, adviser.name, adviser.firm.registered_name]
+      end
+    end
   end
 
   private
